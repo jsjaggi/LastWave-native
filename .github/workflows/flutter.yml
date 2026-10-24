@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 env:
-  FLUTTER_VERSION: 'any'
+  FLUTTER_VERSION: 'stable'
   FLUTTER_CHANNEL: 'stable'
   FLUTTER_PROJECT_DIR: 'lastwave_flutter'
 
@@ -50,8 +50,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: ${{ env.FLUTTER_CHANNEL }}
-          cache: true
-          cache-key: flutter-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('**/pubspec.lock') }}
+          cache: false
 
       - name: Get dependencies
         run: flutter pub get
