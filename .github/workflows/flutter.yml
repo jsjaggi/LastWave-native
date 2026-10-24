@@ -1,0 +1,344 @@
+# Flutter CI/CD Pipeline for LastWave
+# This workflow runs on the Flutter codebase (to be created in a flutter/ or lastwave_flutter/ subdirectory)
+# Cloud iOS builds via GitHub Actions (macos-latest) + Codemagic (free tier, M1 Mac Mini)
+
+name: Flutter CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+    paths:
+      - 'flutter/**'
+      - 'lastwave_flutter/**'
+      - '.github/workflows/flutter.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'flutter/**'
+      - 'lastwave_flutter/**'
+
+# Concurrency: cancel in-flight runs for same branch/PR (except tags)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+env:
+  FLUTTER_VERSION: '3.24.0'
+  FLUTTER_CHANNEL: 'stable'
+  FLUTTER_PROJECT_DIR: 'lastwave_flutter'
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────
+  # Static Analysis & Format Check
+  # ─────────────────────────────────────────────────────────────────
+  analyze:
+    name: Analyze & Format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ${{ env.FLUTTER_PROJECT_DIR }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Analyze Dart code
+        run: dart analyze --fatal-infos
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+  # ─────────────────────────────────────────────────────────────────
+  # Unit & Widget Tests
+  # ─────────────────────────────────────────────────────────────────
+  test:
+    name: Unit & Widget Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ${{ env.FLUTTER_PROJECT_DIR }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run tests with coverage
+        run: flutter test --coverage --reporter=github
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          flags: unittests
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  # ─────────────────────────────────────────────────────────────────
+  # Android Build (APK + AAB)
+  # ─────────────────────────────────────────────────────────────────
+  build-android:
+    name: Build Android (APK + AAB)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [analyze, test]
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    defaults:
+      run:
+        working-directory: ${{ env.FLUTTER_PROJECT_DIR }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Configure Android signing (if secrets present)
+        if: env.KEYSTORE_BASE64 != '' && env.KEYSTORE_PASSWORD != '' && env.KEY_ALIAS != '' && env.KEY_PASSWORD != ''
+        run: |
+          echo "${{ env.KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+          cat > android/key.properties <<EOF
+          storePassword=${{ env.KEYSTORE_PASSWORD }}
+          keyPassword=${{ env.KEY_PASSWORD }}
+          keyAlias=${{ env.KEY_ALIAS }}
+          storeFile=release.keystore
+          EOF
+
+      - name: Build APK (split per ABI)
+        run: flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols
+
+      - name: Build App Bundle (AAB)
+        run: flutter build appbundle --release --obfuscate --split-debug-info=build/app/outputs/symbols
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-${{ github.sha }}
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/bundle/release/*.aab
+            build/app/outputs/symbols/
+          retention-days: 30
+
+      - name: Upload to Google Play Internal (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+          packageName: com.lastwave.app
+          releaseFiles: build/app/outputs/bundle/release/*.aab
+          track: internal
+          status: draft
+          inAppUpdatePriority: 0
+
+  # ─────────────────────────────────────────────────────────────────
+  # iOS Build (IPA) - GitHub Actions macos-latest
+  # ─────────────────────────────────────────────────────────────────
+  build-ios:
+    name: Build iOS (IPA)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    needs: [analyze, test]
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    defaults:
+      run:
+        working-directory: ${{ env.FLUTTER_PROJECT_DIR }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Setup Ruby (for CocoaPods)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods dependencies
+        run: cd ios && pod install --repo-update
+
+      - name: Configure iOS signing (if secrets present)
+        if: env.APP_STORE_CONNECT_API_KEY != '' && env.APP_STORE_CONNECT_API_KEY_ID != '' && env.APP_STORE_CONNECT_ISSUER_ID != ''
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "${{ env.APP_STORE_CONNECT_API_KEY }}" | base64 -d > ~/.appstoreconnect/private_keys/AuthKey_${{ env.APP_STORE_CONNECT_API_KEY_ID }}.p8
+          chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${{ env.APP_STORE_CONNECT_API_KEY_ID }}.p8
+
+      - name: Build IPA
+        run: |
+          flutter build ipa --release \
+            --export-options-plist=ExportOptions.plist \
+            --obfuscate --split-debug-info=build/ios/symbols
+
+      - name: Upload iOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-${{ github.sha }}
+          path: |
+            build/ios/ipa/*.ipa
+            build/ios/symbols/
+          retention-days: 30
+
+      - name: Upload to TestFlight (on tag)
+        if: startsWith(github.ref, 'refs/tags/v') && env.APP_STORE_CONNECT_API_KEY != ''
+        run: |
+          xcrun altool --upload-app \
+            -f build/ios/ipa/*.ipa \
+            -t ios \
+            -u "${{ env.APP_STORE_CONNECT_API_KEY_ID }}" \
+            -p "${{ env.APP_STORE_CONNECT_API_KEY }}" \
+            --apiIssuer "${{ env.APP_STORE_CONNECT_ISSUER_ID }}"
+
+  # ─────────────────────────────────────────────────────────────────
+  # Integration Tests (Optional - run on emulator/simulator)
+  # ─────────────────────────────────────────────────────────────────
+  integration-test-android:
+    name: Integration Tests (Android)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [build-android]
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/v')
+    defaults:
+      run:
+        working-directory: ${{ env.FLUTTER_PROJECT_DIR }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Start Android emulator
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+          emulator: true
+          arch: x86_64
+          ndk-version: r27c
+
+      - name: Wait for emulator
+        run: |
+          adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+
+      - name: Run integration tests
+        run: flutter test integration_test/ --flavor=integration
+
+  integration-test-ios:
+    name: Integration Tests (iOS)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    needs: [build-ios]
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/v')
+    defaults:
+      run:
+        working-directory: ${{ env.FLUTTER_PROJECT_DIR }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods
+        run: cd ios && pod install --repo-update
+
+      - name: Boot iOS Simulator
+        run: |
+          xcrun simctl boot "iPhone 16" || true
+          xcrun simctl list devices
+
+      - name: Run integration tests
+        run: flutter test integration_test/ --flavor=integration
+
+  # ─────────────────────────────────────────────────────────────────
+  # Release: Create GitHub Release with artifacts
+  # ─────────────────────────────────────────────────────────────────
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build-android, build-ios]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-build-${{ github.sha }}
+          path: artifacts/android
+
+      - name: Download iOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-build-${{ github.sha }}
+          path: artifacts/ios
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/android/*.apk
+            artifacts/android/*.aab
+            artifacts/ios/*.ipa
+          generate_release_notes: true
+          draft: false
+          prerelease: false
