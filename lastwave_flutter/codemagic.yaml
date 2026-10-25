@@ -1,0 +1,24 @@
+workflows:
+  ios-release:
+    name: iOS Release
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Get dependencies
+        script: flutter pub get
+      - name: Build IPA
+        script: flutter build ipa --release --export-options-plist=ExportOptions.plist
+      - name: Publish to TestFlight
+        script: |
+          xcrun altool --upload-app -f build/ios/ipa/*.ipa \
+            -t ios -u $APP_STORE_CONNECT_API_KEY_ID -p $APP_STORE_CONNECT_API_KEY
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_API_KEY
+        api_key_id: $APP_STORE_CONNECT_API_KEY_ID
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID

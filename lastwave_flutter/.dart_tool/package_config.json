@@ -351,13 +351,13 @@
     },
     {
       "name": "file_picker",
-      "rootUri": "file:///C:/Users/jsjag/AppData/Local/Pub/Cache/hosted/pub.dev/file_picker-13.1.0",
+      "rootUri": "file:///C:/Users/jsjag/AppData/Local/Pub/Cache/hosted/pub.dev/file_picker-13.2.0",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },
     {
       "name": "file_picker_darwin",
-      "rootUri": "file:///C:/Users/jsjag/AppData/Local/Pub/Cache/hosted/pub.dev/file_picker_darwin-2.3.3",
+      "rootUri": "file:///C:/Users/jsjag/AppData/Local/Pub/Cache/hosted/pub.dev/file_picker_darwin-2.3.4",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },
@@ -423,7 +423,7 @@
     },
     {
       "name": "flutter",
-      "rootUri": "file:///C:/Users/jsjag/flutter/packages/flutter",
+      "rootUri": "file:///C:/Users/jsjag/flutter/flutter/packages/flutter",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -477,7 +477,7 @@
     },
     {
       "name": "flutter_driver",
-      "rootUri": "file:///C:/Users/jsjag/flutter/packages/flutter_driver",
+      "rootUri": "file:///C:/Users/jsjag/flutter/flutter/packages/flutter_driver",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -489,7 +489,7 @@
     },
     {
       "name": "flutter_local_notifications",
-      "rootUri": "file:///C:/Users/jsjag/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_local_notifications-22.3.2",
+      "rootUri": "file:///C:/Users/jsjag/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_local_notifications-22.3.3",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },
@@ -519,7 +519,7 @@
     },
     {
       "name": "flutter_localizations",
-      "rootUri": "file:///C:/Users/jsjag/flutter/packages/flutter_localizations",
+      "rootUri": "file:///C:/Users/jsjag/flutter/flutter/packages/flutter_localizations",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -573,13 +573,13 @@
     },
     {
       "name": "flutter_test",
-      "rootUri": "file:///C:/Users/jsjag/flutter/packages/flutter_test",
+      "rootUri": "file:///C:/Users/jsjag/flutter/flutter/packages/flutter_test",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
     {
       "name": "flutter_web_plugins",
-      "rootUri": "file:///C:/Users/jsjag/flutter/packages/flutter_web_plugins",
+      "rootUri": "file:///C:/Users/jsjag/flutter/flutter/packages/flutter_web_plugins",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -603,7 +603,7 @@
     },
     {
       "name": "fuchsia_remote_debug_protocol",
-      "rootUri": "file:///C:/Users/jsjag/flutter/packages/fuchsia_remote_debug_protocol",
+      "rootUri": "file:///C:/Users/jsjag/flutter/flutter/packages/fuchsia_remote_debug_protocol",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -681,7 +681,7 @@
     },
     {
       "name": "integration_test",
-      "rootUri": "file:///C:/Users/jsjag/flutter/packages/integration_test",
+      "rootUri": "file:///C:/Users/jsjag/flutter/flutter/packages/integration_test",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -752,6 +752,12 @@
       "languageVersion": "3.2"
     },
     {
+      "name": "lastwave_core",
+      "rootUri": "../lastwave_core",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
+    },
+    {
       "name": "leak_tracker",
       "rootUri": "file:///C:/Users/jsjag/AppData/Local/Pub/Cache/hosted/pub.dev/leak_tracker-11.0.2",
       "packageUri": "lib/",
@@ -810,6 +816,12 @@
       "rootUri": "file:///C:/Users/jsjag/AppData/Local/Pub/Cache/hosted/pub.dev/local_auth_windows-2.0.2",
       "packageUri": "lib/",
       "languageVersion": "3.10"
+    },
+    {
+      "name": "logger",
+      "rootUri": "file:///C:/Users/jsjag/AppData/Local/Pub/Cache/hosted/pub.dev/logger-2.8.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
     },
     {
       "name": "logging",
@@ -1167,7 +1179,7 @@
     },
     {
       "name": "sky_engine",
-      "rootUri": "file:///C:/Users/jsjag/flutter/bin/cache/pkg/sky_engine",
+      "rootUri": "file:///C:/Users/jsjag/flutter/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -1511,12 +1523,12 @@
       "name": "lastwave_flutter",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "3.4"
+      "languageVersion": "3.8"
     }
   ],
   "generator": "pub",
   "generatorVersion": "3.13.7",
-  "flutterRoot": "file:///C:/Users/jsjag/flutter",
+  "flutterRoot": "file:///C:/Users/jsjag/flutter/flutter",
   "flutterVersion": "3.47.8",
   "pubCache": "file:///C:/Users/jsjag/AppData/Local/Pub/Cache"
 }

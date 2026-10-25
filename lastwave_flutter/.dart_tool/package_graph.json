@@ -40,6 +40,7 @@
         "intl",
         "json_annotation",
         "just_audio",
+        "lastwave_core",
         "local_auth",
         "lottie",
         "package_info_plus",
@@ -301,7 +302,7 @@
     },
     {
       "name": "flutter_local_notifications",
-      "version": "22.3.2",
+      "version": "22.3.3",
       "dependencies": [
         "clock",
         "flutter",
@@ -354,7 +355,7 @@
     },
     {
       "name": "file_picker",
-      "version": "13.1.0",
+      "version": "13.2.0",
       "dependencies": [
         "android_file_picker",
         "cross_file",
@@ -768,6 +769,25 @@
         "async",
         "collection",
         "meta"
+      ]
+    },
+    {
+      "name": "lastwave_core",
+      "version": "4.3.1",
+      "dependencies": [
+        "clock",
+        "collection",
+        "crypto",
+        "dartz",
+        "dio",
+        "equatable",
+        "freezed_annotation",
+        "intl",
+        "json_annotation",
+        "logger",
+        "retrofit",
+        "rxdart",
+        "uuid"
       ]
     },
     {
@@ -1560,7 +1580,7 @@
     },
     {
       "name": "file_picker_darwin",
-      "version": "2.3.3",
+      "version": "2.3.4",
       "dependencies": [
         "cross_file",
         "file_picker_platform_interface",
@@ -2194,6 +2214,14 @@
         "collection",
         "flutter",
         "nested"
+      ]
+    },
+    {
+      "name": "logger",
+      "version": "2.8.0",
+      "dependencies": [
+        "clock",
+        "meta"
       ]
     },
     {

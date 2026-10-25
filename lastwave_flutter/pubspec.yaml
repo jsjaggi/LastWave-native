@@ -4,7 +4,7 @@ version: 4.3.1+26
 publish_to: 'none'
 
 environment:
-  sdk: '>=3.4.0 <4.0.0'
+  sdk: '^3.8.0'
   flutter: '>=3.24.0'
 
 dependencies:
@@ -12,6 +12,10 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+
+  # Core package
+  lastwave_core:
+    path: ./lastwave_core
 
   # Core & Architecture
   get_it: ^9.3.0
@@ -84,16 +88,15 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.4.13
   freezed: ^4.0.1
-  json_serializable: ^6.9.0
-  injectable_generator: ^2.6.2
-  retrofit_generator: ^9.1.2
+  json_serializable: ^6.7.1
+  injectable_generator: ^3.1.3
+  retrofit_generator: ^10.3.2
   drift_dev: ^2.18.0
-  test: ^1.25.2
+  test: ^1.24.0
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
   integration_test:
     sdk: flutter
-  
 
 flutter:
   uses-material-design: true
@@ -101,15 +104,6 @@ flutter:
     - assets/images/
     - assets/fonts/
     - assets/animations/
-
-  fonts:
-    - family: GoogleSans
-      fonts:
-        - asset: assets/fonts/GoogleSans-Regular.ttf
-        - asset: assets/fonts/GoogleSans-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/GoogleSans-Bold.ttf
-          weight: 700
 
   module:
     androidX: true
